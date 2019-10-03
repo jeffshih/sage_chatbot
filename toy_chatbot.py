@@ -35,7 +35,7 @@ def callback():
 
     return 'OK'
 
-@app.route("/")
+@app.route("/hello",methods=['GET'])
 def hello():
     return "Hello, line chatbot"
 
