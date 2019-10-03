@@ -35,9 +35,13 @@ def callback():
 
     return 'OK'
 
+@app.route("/")
+def hello():
+    return "Hello, line chatbot"
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    line_bot_api.reply_message(event.reply_token,text="ABC")
     if event.message.text == "Hi":
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text.hi))
     else:
