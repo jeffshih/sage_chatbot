@@ -1,1 +1,1 @@
-web: python toy_chatboy.py
+web: python toy_chatbot.py
