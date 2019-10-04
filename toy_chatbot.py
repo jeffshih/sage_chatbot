@@ -82,10 +82,10 @@ def handle_message(event):
     #line_bot_api.reply_message(event.reply_token, TextSendMessage(text="ABC"))
     text2reply = []
     msg = event.message.text 
-    if msg == "開啟":
+    if "開啟" in msg:
         text2reply.append(TextSendMessage(text="功能已啟用"))
         register.add(event.source.user_id)
-    elif msg == "停止":
+    elif "停止" in msg:
         text2reply.append(TextSendMessage(text="功能已關閉"))
         register.remove(event.source.user_id)
     
@@ -93,6 +93,8 @@ def handle_message(event):
         text2reply.append(TextSendMessage(text=reply_text.Hi))
     elif msg == "介紹":
         text2reply.append(TextSendMessage(reply_text.helpMessage))
+    elif "笑話" in msg or "joke" in msg:
+        text2reply.append(TextSendMessage(reply_text.joke))
     else:
         text2reply.append(TextSendMessage(text=reply_text.generalResponse))
         text2reply.append(TextSendMessage(reply_text.intro))
