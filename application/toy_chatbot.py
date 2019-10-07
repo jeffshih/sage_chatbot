@@ -36,7 +36,7 @@ def addLocalDB(user_id):
     if user_id not in accountDB:
         accountDB[user_id] = False
 
-def writeLocalDB():
+def updateLocalDB():
     localDB = open("./db/localDb.json",'w')
     json.dump(accountDB,localDB)
     localDB.close()
@@ -90,7 +90,7 @@ def pushMessage():
            # print(mode=="True")
             if mode == True:
                 line_bot_api.push_message(ID,TextSendMessage(text="在{}時偵測到{}個站立".format(date,detsCnt)))
-        writeLocalDB()
+        updateLocalDB()
         time.sleep(1)
 
 #def pushMessageLocal():
@@ -186,7 +186,6 @@ def handle_message(event):
         text2reply.append(TextSendMessage(text=reply_text.generalResponse))
         text2reply.append(TextSendMessage(reply_text.intro))
     
-    #writeLocalDB()
     if len(text2reply)>0:
         line_bot_api.reply_message(event.reply_token, messages=text2reply)
     #line_bot_api.push_message("Ucd82fda579561396b75c340fe72e1342",TextSendMessage(text="安安"))
