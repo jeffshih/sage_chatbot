@@ -5,7 +5,9 @@ import datetime
 import threading
 import sched, time 
 import collections
-
+import os.path as osp
+import os
+import glob
 
 #global variables
 w = 1280
@@ -72,7 +74,7 @@ class getDetectionBot(object):
                         del output[str(j)]
         return output
 
-    def getDetections(self,jsonFileName):
+    def getDetections(self):
         while True:
             num = np.random.randint(0,8)
             output = {}
@@ -80,11 +82,14 @@ class getDetectionBot(object):
                 res = self.genSimRes()
                 output[str(i)] = res
             result_boxes =self.filt(output,num)
-            with open(jsonFileName,'w') as f:
+            time_stamp = datetime.datetime.now().strftime("%S:%f")
+            jsonFileName = time_stamp+"result.json"
+            jsonFilePath = osp.join("./res",jsonFileName)
+            with open(jsonFilePath,'w') as f:
                 json.dump(result_boxes,f)
             time.sleep(1)
-           # detection_result = self.parseResult(jsonFileName)
-           # print(detection_result)
+            #detection_result = self.parseResult()
+            #print(detection_result)
            # print("detection_result count is {}".format(len(detection_result)))
 
     def getDetectionLocal(self):
@@ -99,12 +104,24 @@ class getDetectionBot(object):
             return result_boxes 
 
         
-    def parseResult(self,resultJson):
-        with open(resultJson) as json_file:
-            result = json.load(json_file)
+    def parseResult(self):
+        resultJsonList = glob.glob("./res/*.json")
+        print(resultJsonList)
+        result = []
+        for resultJson in resultJsonList:
+            with open(resultJson) as json_file:
+                result.append(json.load(json_file))
+            rm = "rm {}".format(resultJson)
+            os.system(rm)
         return result
+
+    def printResult(self):
+        while True:
+            print(self.parseResult())
 
 if __name__ == "__main__":
     jsonFileName = 'detectionResult.json'
     bot = getDetectionBot()
-    bot.getDetections(jsonFileName)
+    #get_thread = threading.Thread(target=bot.getDetections)
+    #get_thread.start()
+    bot.getDetections()
