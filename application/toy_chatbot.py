@@ -1,9 +1,8 @@
 from flask import Flask, request, abort
-from flask_script import Manager
 from bot_config import CAT, Channel_secret 
 import reply_text
 import json 
-from getDetectionBot import getDetectionBot 
+#from getDetectionBot import getDetectionBot 
 import threading
 import time
 import glob
@@ -28,10 +27,6 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(CAT)
 handler = WebhookHandler(Channel_secret)
 register = set()
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(baseDir,"db", "chatbot.db")
-app.config["SQLAlCHEMY_COMMIT_ON_TEARDOWN"] = True
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ECHO"] = True
 #db = SQLAlchemy(app)
 #global accountDB
 accountDB = {}
@@ -42,8 +37,9 @@ def addLocalDB(user_id):
         accountDB[user_id] = False
 
 def writeLocalDB():
-    with open("./db/localDb.json",'w') as localDB:
-        json.dump(accountDB,localDB)
+    localDB = open("./db/localDb.json",'w')
+    json.dump(accountDB,localDB)
+    localDB.close()
 
 def deleteLocalDB(user_id):
     if user_id in accountDB:
@@ -72,8 +68,6 @@ def pushMessage():
     def parseResult(jsonFile):
         with open(jsonFile) as json_file:
             result = json.load(json_file)
-            global detection_result
-            detection_result = result 
         return result
     while True: 
         resultJsonList = glob.glob("./res/*.json")
@@ -84,24 +78,31 @@ def pushMessage():
             os.system(rm)
         detsCnt = len(dets)
         registerCnt = len(accountDB)
+        #print("account db {}".format(accountDB))
+        #print("dets {}".format(dets))
         if registerCnt == 0 or detsCnt == 0:
+            time.sleep(1)
             continue
-        for ID, usr in accountDB:
-            if usr['mode'] == True:
-                line_bot_api.push_message(usr,TextSendMessage(text="偵測到{}個站立".format(detsCnt)))
+        date = dets[0]["0"]["timestamp"]
+        for ID, mode in accountDB.items():
+           # print(ID, mode)
+           # print(type(mode))
+           # print(mode=="True")
+            if mode == True:
+                line_bot_api.push_message(ID,TextSendMessage(text="在{}時偵測到{}個站立".format(date,detsCnt)))
+        writeLocalDB()
+        time.sleep(1)
 
-#        time.sleep(1)
-
-def pushMessageLocal():
-    bot = getDetectionBot() 
-    while True: 
-        dets = bot.getDetectionLocal()
-        detsCnt = len(dets)
-        registerCnt = len(register)
-        if registerCnt == 0 or detsCnt == 0:
-            continue
-        for usr in register:
-            line_bot_api.push_message(usr,TextSendMessage(text="偵測到{}個站立".format(detsCnt)))
+#def pushMessageLocal():
+#    bot = getDetectionBot() 
+#    while True: 
+#        dets = bot.getDetectionLocal()
+#        detsCnt = len(dets)
+#        registerCnt = len(register)
+#        if registerCnt == 0 or detsCnt == 0:
+#            continue
+#        for usr in register:
+#            line_bot_api.push_message(usr,TextSendMessage(text="偵測到{}個站立".format(detsCnt)))
 #
 
 @app.route("/callback", methods=['POST'])
@@ -185,7 +186,7 @@ def handle_message(event):
         text2reply.append(TextSendMessage(text=reply_text.generalResponse))
         text2reply.append(TextSendMessage(reply_text.intro))
     
-    writeLocalDB()
+    #writeLocalDB()
     if len(text2reply)>0:
         line_bot_api.reply_message(event.reply_token, messages=text2reply)
     #line_bot_api.push_message("Ucd82fda579561396b75c340fe72e1342",TextSendMessage(text="安安"))
@@ -206,8 +207,6 @@ if __name__ == "__main__":
 #    det_thread.start()
     push_thread = threading.Thread(target=pushMessage)
     push_thread.start()
-#    push_thread = threading.Thread(target=pushMessageLocal)
-#    push_thread.start()
     #app_thread = threading.Thread(target=app.run)
     #app_thread.start()
     #manager.run()
