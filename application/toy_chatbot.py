@@ -72,15 +72,17 @@ def pushMessage():
     while True: 
         resultJsonList = glob.glob("./res/*.json")
         dets = []
-        box2filt = []
+        box2filt = {}
         for jsonFile in resultJsonList:
             dets.append(parseResult(jsonFile))
             rm = "rm {}".format(jsonFile) 
             os.system(rm)
+        i = 0
         for det in dets:
             for idx, res in det.items():
-                box2filt.append(res["box"])
-        result = filt(box2filt)
+                box2filt[str(i)] = res
+                i+=1
+        result = filt(box2filt, len(box2filt))
         detsCnt = len(result)
         registerCnt = len(accountDB)
         #print("account db {}".format(accountDB))
