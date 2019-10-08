@@ -8,7 +8,7 @@ import time
 import glob
 import os 
 from flask_sqlalchemy import SQLAlchemy 
-
+from util import *
 
 baseDir = os.path.abspath(os.path.dirname(__file__))
 from linebot import (
@@ -72,11 +72,16 @@ def pushMessage():
     while True: 
         resultJsonList = glob.glob("./res/*.json")
         dets = []
+        box2filt = []
         for jsonFile in resultJsonList:
             dets.append(parseResult(jsonFile))
             rm = "rm {}".format(jsonFile) 
             os.system(rm)
-        detsCnt = len(dets)
+        for det in dets:
+            for idx, res in det.items():
+                box2filt.append(res["box"])
+        result = filt(box2filt)
+        detsCnt = len(result)
         registerCnt = len(accountDB)
         #print("account db {}".format(accountDB))
         #print("dets {}".format(dets))
